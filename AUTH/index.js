@@ -38,6 +38,7 @@
                     if (res.status) {
                         $scope.menuList = $scope.loadNode(res.data, 0);
                     };
+                    
                     $scope.$apply();
 
                 }, 'json').then(function () {

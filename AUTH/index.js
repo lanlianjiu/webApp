@@ -38,13 +38,13 @@
                     if (res.status) {
                         $scope.menuList = $scope.loadNode(res.data, 0);
                     };
-                    
+
                     $scope.$apply();
 
                 }, 'json').then(function () {
-                 $("#side-menu").metisMenu({
-                     toggle: true
-                 });
+                $("#side-menu").metisMenu({
+                    toggle: true
+                });
             });
         };
 
@@ -63,6 +63,8 @@
                 }, 'json');
         };
 
+
+
         $(document).ready(function () {
             $scope.getMenus();
         });
@@ -70,3 +72,18 @@
     }])
 
 }(jQuery);
+
+$(document).on('click', '[data-tabs="open"]', function (e) {
+    var options = $(this).data('options');
+    if (options.nodes && options.nodes.length > 0) return;
+    $(this).tabs('open', options);
+})
+
+function openTabs(options) {
+    $(this).tabs('open', options);
+}
+
+function closeTabs(options) {
+    var $tab = $('#' + options.tabs + '-tab');
+    $tab.tabs('close');
+}

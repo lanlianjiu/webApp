@@ -32,20 +32,31 @@
 
         //获取菜单
         $scope.getMenus = function () {
-            $.post("http://localhost/ATS/backend/web/InterfaceRequest.php?r=site/index", {},
-                function (res) {
-
+           
+            $.ajax({
+                //请求方式
+                type: 'POST',
+                //发送请求的地址
+                url: 'http://localhost/ATS/backend/web/InterfaceRequest.php?r=site/index',
+                //服务器返回的数据类型
+                dataType: 'json',
+                //发送到服务器的数据，对象必须为key/value的格式，jquery会自动转换为字符串格式
+                data: {},
+                success: function (res) {
                     if (res.status) {
                         $scope.menuList = $scope.loadNode(res.data, 0);
                     };
 
                     $scope.$apply();
-
-                }, 'json').then(function () {
-                $("#side-menu").metisMenu({
-                    toggle: true
+                },
+                error: function (jqXHR) {
+                    //请求失败函数内容
+                }
+            }).then(function () {
+                    $("#side-menu").metisMenu({
+                        toggle: true
+                    });
                 });
-            });
         };
 
 
@@ -55,9 +66,11 @@
                 function (result) {
                     if (result) {
                         $.localCache.remove($.cfg.user);
+                        $.localCache.remove($.cfg.access_tokone);
                         window.location.href = "login.html";
                     } else {
                         $.localCache.remove($.cfg.user);
+                        $.localCache.remove($.cfg.access_tokone);
                         window.location.href = 'login.html';
                     };
                 }, 'json');
@@ -78,12 +91,3 @@ $(document).on('click', '[data-tabs="open"]', function (e) {
     if (options.nodes && options.nodes.length > 0) return;
     $(this).tabs('open', options);
 })
-
-function openTabs(options) {
-    $(this).tabs('open', options);
-}
-
-function closeTabs(options) {
-    var $tab = $('#' + options.tabs + '-tab');
-    $tab.tabs('close');
-}

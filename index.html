@@ -75,13 +75,13 @@
                         <a href="" title="{{item.text}}" data-tabs="open" data-options="{{item}}">
                             <i class="fa {{item.icon}}"></i>
                             <span class="nav-label" ng-bind="item.text"></span>
-                            <span class="fa arrow" ng-if="item.nodes"></span>
+                            <span class="fa arrow" ng-if="item.children"></span>
                         </a>
                         <ul class="nav nav-second-level">
                             <li ng-repeat="child in item.children">
                                 <a href="" data-tabs="open" data-options="{{child}}">
                                     <span ng-bind="child.text"></span>
-                                    <span class="fa arrow" ng-if="child.nodes"></span>
+                                    <span class="fa arrow" ng-if="child.children"></span>
                                 </a>
                             </li>
                         </ul>
@@ -164,6 +164,7 @@
     <script type="text/javascript" src="assets/lib/plugins/tabs/tabs.min.js"></script>
     <!-- ui框架 -->
 
+    <script type="text/javascript" src="assets/js/public.web.js"></script>
     <script type="text/javascript" src="AUTH/index.js"></script>
 
 

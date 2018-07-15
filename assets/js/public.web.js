@@ -1,32 +1,11 @@
 + function ($) {
     var cfg = {
-        //server_: "http://localhost/TES/backend/web/",
-        //server_: "http://192.168.184.128/TES/backend/web/",
-        user: 'TES_USERINFO',
-        auth: 'auth',
+        server_: "http://localhost/RET/backend/web/",
+        user: 'ADMIN_SYSTEM_USERINFO',
+        access_tokone: 'admin_system_access_tokone',
     }
     $.cfg = cfg;
-    $.ajaxSetup({
-        data: {
-
-        },
-        success: function (data) {},
-        error: function (xhr, status, e) {
-            var pathName = window.top.location.pathname.substring(0, window.top.location.pathname.substr(1).indexOf('/') + 1);
-            var localPath = window.top.location.origin;
-            var rootPath = localPath + localPath;
-
-            if (xhr.status == 401) {
-                if (window.top == window.self) { //不存在父页面
-                    window.location.replace("/login.php");
-                } else {
-                    window.top.location.replace($.cfg.server_ + "/login.php");
-                }
-            } else if (xhr.status == 405) {
-                alert(xhr.responseText)
-            }
-        }
-    })
+   
 }(jQuery);
 /** b-iov-utils start 基本函数**/
 +
@@ -317,6 +296,235 @@
         return o;
     };
 })(jQuery); +
+
+/*angular 更新页面值函数*/
+(function ($) {
+    $.angular = {};
+    $.angular.updateScope = function ($this, val) {
+        var ngModel = $this.attr('ng-model') || $this.attr('iov-ng-model');
+        if (ngModel) {
+            var $scope = angular.element($this).scope();
+            var v = val || $this.val() || '';
+            if ($scope) {
+                $scope.$eval(ngModel + '="' + v + '"');
+                setTimeout(function () {
+                    $scope.$apply()
+                }, 0)
+            }
+        }
+    }
+})(jQuery);
++
+/** b-iov-cache start 页面缓存**/
+function ($) {
+    var cacheFactory = function (value, expiry) {
+        if (!String(expiry).isInteger()) {
+            expiry = 0;
+        }
+        expiry = expiry == 0 ? 0 : new Date().getTime() + Number(expiry);
+        return {
+            val: value,
+            expiry: expiry,
+            _d: 0
+        };
+    }
+
+    var Cache = function (storage) {
+        this.storage = storage;
+        this.storageEvent = {};
+    }
+
+    Cache.prototype.addChangeListener = function (key, fun) {
+        var $this = this;
+
+        var cacheKey = "Change__" + key;
+        $this.storageEvent[cacheKey] = fun;
+
+        var storageHandle = function (e) {
+            $this.trigger(e.key, e)
+        };
+        if (window.addEventListener) {
+            window.addEventListener("storage", storageHandle, false);
+        } else {
+            window.attachEvent("onstorage", storageHandle);
+        };
+
+    }
+
+    Cache.prototype.trigger = function (key, e) {
+        var $this = this;
+        var cacheKey = "Change__" + key;
+
+        if (typeof this.storageEvent[cacheKey] == "function") {
+            this.storageEvent[cacheKey]({
+                key: key,
+                value: $this.get(key)
+            });
+        }
+    }
+
+    Cache.prototype.getObject = function (key) {
+        if (this.storage.getItem(key)) {
+            var v = this.storage.getItem(key);
+            if (v.startsWith("{") && v.endsWith("}")) {
+                var c = JSON.parse(v);
+                if (c._d == 0) {
+                    if (c.expiry != 0 && c.expiry < new Date().getTime()) {
+                        this.remove(key);
+                        return undefined;
+                    }
+                    return c;
+                }
+            }
+        }
+    }
+
+    Cache.prototype.setObject = function (key, value) {
+        this.storage.setItem(key, JSON.stringify(value));
+        this.trigger(key)
+    }
+
+    Cache.prototype.set = function (key, value, expiry) {
+        this.setObject(key, cacheFactory(value, expiry))
+    }
+
+    Cache.prototype.get = function (key) {
+        var v = this.getObject(key);
+        if (v != undefined) {
+            return v.val;
+        }
+    }
+
+    Cache.prototype.remove = function (key) {
+        var result = this.storage.removeItem(key);
+        this.trigger(key)
+        return result;
+    }
+
+    Cache.prototype.incr = function (key, value, expiry) {
+        if (!String(value).isInteger()) {
+            value = 1;
+        }
+        if (!String(expiry).isInteger()) {
+            expiry = 0;
+        }
+        var v = this.getObject(key);
+        if (v != undefined) {
+            v.val += Number(value);
+            v.expiry += Number(expiry);
+        } else {
+            v = cacheFactory(value, expiry);
+        }
+        this.setObject(key, v);
+        return v.val;
+    }
+
+    Cache.prototype.decr = function (key, value, expiry) {
+        if (!String(value).isInteger()) {
+            value = 1;
+        }
+        if (!String(expiry).isInteger()) {
+            expiry = 0;
+        }
+        var v = this.getObject(key);
+        if (v != undefined) {
+            v.val -= Number(value);
+            v.expiry += Number(expiry);
+        } else {
+            v = cacheFactory(-value, expiry);
+        }
+        this.setObject(key, v);
+        return v.val;
+    }
+
+    Cache.prototype.contains = function () {
+        return this.storage.getItem(key) != null
+    }
+
+    Cache.prototype.clearAll = function () {
+        this.storage.clear();
+    }
+
+    Cache.prototype.destroy = function () {
+        for (var i = 0; i < this.storage.length; i++) {
+            this.getObject(this.storage.key(i));
+        }
+    }
+    Cache.prototype.getKey = function (prefix) {
+        var itemList = {}
+        for (var i = 0; i < this.storage.length; i++) {
+            var key = this.storage.key(i)
+            if (prefix) {
+                if (key.match(/^TABLE_CFG_\d+/)) itemList[key] = key
+            } else {
+                itemList[key] = key
+            }
+        }
+        return itemList
+    }
+
+    $.localCache = new Cache(window.localStorage);
+    $.sessionCache = new Cache(window.sessionStorage);
+}(jQuery);
+/** b-iov-cache end**/
++
+/** b-iov-userInfo start 用户登录信息缓存**/
+function ($) {
+
+    var userInfo = function () {
+        var user = {}
+        this.load();
+    }
+
+    userInfo.prototype.load = function (info) {
+
+        var uInfo = $.localCache.get($.cfg.user) || {};
+        this.user = $.extend(uInfo, info);
+    }
+
+    userInfo.prototype.isLogin = function () {
+        return this.user.id > 0
+    }
+
+    userInfo.prototype.getUserName = function () {
+        return this.user.username
+    }
+
+    $.u = new userInfo();
+
+}(jQuery);
+/** b-iov-userInfo end**/
++
+/** b-iov-ajax-网络请求**/
+function ($) {
+
+     $.ajaxSetup({
+         headers: { // 默认添加请求头access_tokone
+             "Authorization": $.localCache.get($.cfg.access_tokone)
+         },
+         success: function (data) {},
+         error: function (xhr, status, e) {
+             console.log(xhr)
+             var pathName = window.top.location.pathname.substring(0, window.top.location.pathname.substr(1).indexOf('/') + 1);
+             var localPath = window.top.location.origin;
+             var rootPath = localPath + localPath;
+
+             if (xhr.status == 401) {
+                 if (window.top == window.self) { //不存在父页面
+                     window.location.replace("/login.php");
+                 } else {
+                     window.top.location.replace($.cfg.server_ + "/login.php");
+                 }
+             } else if (xhr.status == 405) {
+                 alert(xhr.responseText)
+             }
+         }
+     })
+    
+
+}(jQuery);
+/** b-iov-ajax网络请求 end**/
++
 /**bootstrap-dialog-modal 自定义弹出框居中**/
 function ($) {
     $(document).on("show.bs.modal", ".modal", function () {
@@ -337,7 +545,8 @@ function ($) {
 
 
     });
-}(jQuery); +
+}(jQuery); 
++
 (function ($) {
     var Dialog = function () {}
     Dialog.prototype.Success = function (message, callback) {

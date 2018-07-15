@@ -2,11 +2,17 @@
     var config = {
         js: [
             "../lib/bootstrap/bootstrap.min.js",
+            "../lib/bootstrap/bootstrap-table/bootstrap-table.min.js",
+            "../lib/bootstrap/bootstrap-table/locale/bootstrap-table-zh-CN.min.js",
+            "../lib/bootstrap/bootstrap-extensions/tableExport.min.js",
+            "../lib/bootstrap/bootstrap-extensions/bootstrap-table-export/bootstrap-table-export.js",
+            "../lib/bootstrap/bootstrap-extensions/toolbar/bootstrap-table-toolbar.js",
             "../lib/angular/angular-1.4.8.min.js",
+             
         ],
         css: [
             "../lib/bootstrap/bootstrap.min.css",
-            "../css/font-awesome.min.css",
+            "../lib/bootstrap/bootstrap-table/bootstrap-table.min.css",
             "../css/animate.min.css",
             "../css/style.min.css",
         ],

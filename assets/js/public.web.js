@@ -500,7 +500,7 @@ function ($) {
 
      $.ajaxSetup({
          headers: { // 默认添加请求头access_tokone
-             "Authorization": $.localCache.get($.cfg.access_tokone)
+             "Authorization": "Basic "+$.localCache.get($.cfg.access_tokone)
          },
          success: function (data) {},
          error: function (xhr, status, e) {
